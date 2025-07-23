@@ -9,6 +9,7 @@ import '../log.dart';
 import '../handlers/kubernetes_handler.dart';
 import '../handlers/gke_handler.dart';
 import '../handlers/eks_handler.dart';
+import '../handlers/okd_handler.dart';
 import '../util.dart';
 import '../extensions.dart';
 import 'base.dart';
@@ -89,6 +90,8 @@ class DeployExecutor extends BaseExecutor {
         handler = GKEHandler(config);
       } else if (environment.apiProvider == "eks") {
         handler = EKSHandler(config);
+      } else if (environment.apiProvider == "okd") {
+        handler = OKDHandler(config);
       } else {
         handler = KubernetesHandler(config);
       }
