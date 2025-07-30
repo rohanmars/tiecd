@@ -19,6 +19,7 @@ class DeployExecutor extends BaseExecutor {
 
   final Map<String, Environment>  _environments = {};
   final Map<String, DeployHandler> _deployHandlers = {};
+  final Map<String, String> _globalDeployContext = {};
 
   @override
   String getVerb() {
@@ -154,7 +155,7 @@ class DeployExecutor extends BaseExecutor {
         if (tieFile.registries != null) {
           imageReregistries = tieFile.registries!;
         }
-        var context = DeployContext(config, imageReregistries, handler, expandedEnvironment, app);
+        var context = DeployContext(config, imageReregistries, handler, expandedEnvironment, app, globalDeployContext: _globalDeployContext);
         var namespace = findNamespace(context);
         app.tiecdEnv ??= {};
 

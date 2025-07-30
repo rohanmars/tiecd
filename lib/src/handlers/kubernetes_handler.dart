@@ -276,6 +276,7 @@ class KubernetesHandler implements DeployHandler {
         deployContext.app.tiecdEnv!['TIECD_IMAGE_SHA'] = sha;
         deployContext.app.tiecdEnv!['TIECD_IMAGE_NAME'] = imageTag.name;
         deployContext.app.tiecdEnv!['TIECD_IMAGE_TAG'] = tag;
+        
         if (_config.verbose) {
           Log.info('adding TIECD_IMAGE_SHA to environment: $sha');
           Log.info('adding TIECD_IMAGE_NAME to environment: ${imageTag.name}');
@@ -290,6 +291,13 @@ class KubernetesHandler implements DeployHandler {
             imageTag.name;
         deployContext.app.tiecdEnv!['TIECD_IMAGE_${envImageName}_TAG'] =
             tag;
+
+        // Save named image variables to global deploy context
+        if (deployContext.globalDeployContext != null) {
+          deployContext.globalDeployContext!['TIECD_IMAGE_${envImageName}_SHA'] = sha;
+          deployContext.globalDeployContext!['TIECD_IMAGE_${envImageName}_NAME'] = imageTag.name;
+          deployContext.globalDeployContext!['TIECD_IMAGE_${envImageName}_TAG'] = tag;
+        }
 
         if (_config.verbose) {
           Log.info(

@@ -82,8 +82,21 @@ class DeployContext extends TieContext {
   DeployHandler handler;
   Environment environment;
   Set<String> deployedArtifacts = {};
+  Map<String, String>? globalDeployContext;
 
-  DeployContext(super.config, super.registries, this.handler, this.environment, super.app);
+  DeployContext(super.config, super.registries, this.handler, this.environment, super.app, {this.globalDeployContext});
+  
+  @override
+  Map<String, String> getEnv() {
+    var properties = super.getEnv();
+    
+    // Add global deploy context values
+    if (globalDeployContext != null) {
+      globalDeployContext!.forEach((key, value) => properties[key] = value);
+    }
+    
+    return properties;
+  }
 }
 
 class BuildContext extends TieContext {
