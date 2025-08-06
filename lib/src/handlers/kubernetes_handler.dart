@@ -406,6 +406,21 @@ class KubernetesHandler implements DeployHandler {
     }
   }
 
+  bool isBinaryFile(String filePath) {
+    final file = File(filePath);
+    if (!file.existsSync()) return false;
+    
+    try {
+      // Attempt to read the file as UTF-8
+      file.readAsStringSync(encoding: utf8);
+      // If successful, it's a text file
+      return false;
+    } catch (e) {
+      // If UTF-8 decoding fails, it's likely a binary file
+      return true;
+    }
+  }
+
   @override
   Future<void> handleConfig(DeployContext deployContext) async {
     if (deployContext.app.deploy!.mountFiles != null) {
@@ -427,11 +442,8 @@ class KubernetesHandler implements DeployHandler {
               generateMountName(deployContext.app.name!, mountPath);
           var strippedName = stripConfigFilePath(mountPath);
 
-          // properties expansion
-          var rawFile =
-              File('${_config.baseDir}/${mountFile.file!}').readAsStringSync();
-
-          var configMap = {
+          var filePath = '${_config.baseDir}/${mountFile.file!}';
+          var configMap = <String, dynamic>{
             "apiVersion": "v1",
             "kind": "ConfigMap",
             "metadata": {
@@ -442,9 +454,19 @@ class KubernetesHandler implements DeployHandler {
                 "app.kubernetes.io/managed-by": "tiecd",
                 "app.kubernetes.io/name": deployContext.app.label
               }
-            },
-            "data": {strippedName: rawFile}
+            }
           };
+
+          if (isBinaryFile(filePath)) {
+            // For binary files, use binaryData with base64 encoding
+            var fileBytes = File(filePath).readAsBytesSync();
+            var base64Content = base64.encode(fileBytes);
+            configMap["binaryData"] = {strippedName: base64Content};
+          } else {
+            // For text files, use data with string content and properties expansion
+            var rawFile = File(filePath).readAsStringSync();
+            configMap["data"] = {strippedName: rawFile};
+          }
 
           var kubectl = KubeCtlCommand(_config, this);
           var namespace = await buildNamespace(deployContext);
